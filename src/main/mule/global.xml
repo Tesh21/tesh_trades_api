@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="68b94521-85f9-4287-85f3-50e3af0c32cc" file="config/${env}.properties" />
+	<configuration doc:name="Configuration" doc:id="256c0b99-ac73-400f-96ac-43fd5ea4df1d" defaultErrorHandler-ref="global-Error-Handler" />
+	<error-handler name="global-Error-Handler" doc:id="2bb18c55-7147-42e2-b664-6c0969f2e6ef" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d7a82bb6-13bf-403f-a244-fd166b4232d1" >
+			<flow-ref doc:name="set-error-response-subFlow" doc:id="c17c3dfc-ddc9-4c65-8e6a-34643289f904" name="set-error-response-subFlow"/>
+		</on-error-propagate>
+	</error-handler>
+	<sub-flow name="set-error-response-subFlow" doc:id="875e72ae-182d-48e7-92c3-fe2b2fada4d6" >
+		<ee:transform doc:name="set-error-response" doc:id="c36af6a8-e7b1-49c2-90cf-1cc648aab390" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/json
+---
+	(
+	if(error.errorType.identifier == "BAD_REQUEST")
+	 400
+	else if(error.errorType.identifier == "NOT_FOUND")
+	 404
+	else if(error.errorType.identifier == "METHOD_NOT_ALLOWED")
+	 405
+	else
+	  500
+	  )]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+</mule>
