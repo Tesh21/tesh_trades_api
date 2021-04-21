@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="4f4f4757-5df8-49e5-921c-2f47bff445dc" />
+	<file:config name="File_Config1" doc:name="File Config" doc:id="54470678-d844-4573-a424-4eaaf74cbed2" />
+	<sub-flow name="process-trade-to-file-subFlow" doc:id="40da08d3-fbfa-49de-9ca4-521f7bfe82f6" >
+		<logger level="DEBUG" doc:name="Logger" doc:id="f5940d1f-f893-4312-a0cb-69da4b10802d" message='#["request received to process trade , correlationId: " ++ correlationId]'/>
+		<choice doc:name="Choice" doc:id="16956a27-7be8-46de-bbc3-e938e59bd4ed" >
+			<when expression='#[lower(payload."type") == "equity"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="2494e20a-723b-481d-8627-a2e788f00e6a" message='#["received equity trade, correlationId: " ++ correlationId]'/>
+				<ee:transform doc:name="set filePath" doc:id="ec8f5c71-1fc5-44b9-81f4-259fe44cbb3d">
+					<ee:message>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="filePath" ><![CDATA[%dw 2.0
+output application/json
+---
+p("equity.filePath") ++ (p("equity.fileName") ++ (now() as String {format: "yyyy_MM_dd_HH_mm_ss"}) ++ ".json")]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="create-file-SubFlow" doc:id="4fdb9629-efc8-44e3-8537-d016a55b0c77" name="create-file-SubFlow"/>
+				<ee:transform doc:name="set response" doc:id="a94dbc70-ba17-43da-ae05-d62218e6ef11">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"status": "trade processed successfully"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression='#[lower(payload."type") == "fx"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="bf5a091c-6a59-4be8-9a43-471974d55151" message='#["received fx trade , correlationId: " ++ correlationId]'/>
+				<ee:transform doc:name="set filePath" doc:id="342ea57d-3d30-45f5-9b96-31cd87373d2e">
+					<ee:message>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="filePath" ><![CDATA[%dw 2.0
+output application/json
+---
+p("fx.filePath") ++ (p("fx.fileName") ++ (now() as String {format: "yyyy_MM_dd_HH_mm_ss"}) ++ ".json")]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="create-file-SubFlow" doc:id="3670e7c1-a9ac-4800-8bc2-cbf2540af929" name="create-file-SubFlow"/>
+				<ee:transform doc:name="set response" doc:id="f79447e7-bd85-4d20-b2ae-6bdc65e51a48">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"status": "trade processed successfully"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="5d2b10bc-dd17-4e25-90a2-be9ab07f74d5" message='#["invalid trade type: " ++ payload."type" ++ ", correlationId: " ++ correlationId]'/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="create-file-SubFlow" doc:id="48692b97-54aa-49fe-be66-1503a7b15422" >
+		<logger level="INFO" doc:name="Logger" doc:id="d1e3d0ac-2668-4c4e-b97c-f2ed097f265b" message='#["ready to create a file, correlationId: " ++ correlationId]' />
+		<file:write doc:name="Write" doc:id="56cca160-2927-496d-b1e0-6ded288d5ebe" path="#[vars.filePath]" />
+		<logger level="INFO" doc:name="Logger" doc:id="af8c1cd6-f48f-404f-8f5d-d56827163461" message='#["file created successfully, correlationId: " ++ correlationId]' />
+	</sub-flow>
+</mule>

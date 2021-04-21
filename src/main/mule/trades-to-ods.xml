@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<sub-flow name="process-trades-to-ods-subflow" doc:id="e463fc87-78eb-4402-ab9c-d81b1b7e3b26" />
+	<sub-flow name="insert-to-db-subflow" doc:id="79ddda75-ba63-4868-84c5-b8f8967d7481" >
+		<logger level="INFO" doc:name="Logger" doc:id="207cf7bd-847f-41a2-9481-17aca4104d24" message="ready to insert into DB"/>
+		<db:insert doc:name="Insert" doc:id="46d24004-7e23-4bcf-ae15-1f117e58118b" >
+			<db:sql ><![CDATA[insert into [dbo].[fx]
+([index],symbol,operation,quantity,price)
+values
+(
+	'NASDAQ',
+	'USDAUD',
+	'BUY',
+	100,
+	72
+)
+]]></db:sql>
+		</db:insert>
+		<logger level="INFO" doc:name="Logger" doc:id="da0b15c0-73c0-413f-becc-02b8be4a589e" message="record inserted into DB "/>
+	</sub-flow>
+</mule>
