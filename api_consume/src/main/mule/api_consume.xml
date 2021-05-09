@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="b7759424-9b10-4178-9d34-638496bc203f" basePath="/json" >
+		<http:request-connection host="ipwhois.app"/>
+	</http:request-config>
+	<flow name="api_consumeFlow" doc:id="657109c6-b156-4e42-9585-4c1a97f8d423" >
+		<http:listener doc:name="Listener" doc:id="68777947-2772-4fc7-bec4-f6d911e08721" config-ref="HTTP_Listener_config" path="/api/{ip}"/>
+		<set-variable value="#[attributes.uriParams.ip]" doc:name="Set Variable" doc:id="3e15383a-43ae-417e-82b3-b74a08243394" variableName="ip"/>
+		<http:request method="GET" doc:name="Request" doc:id="7755f141-1bb4-44ab-94c8-ac0e8e17a93b" config-ref="HTTP_Request_configuration" path="/#[vars.ip]"/>
+		<choice doc:name="Choice" doc:id="c4f89579-4251-4937-862f-4ee8675661a8" >
+			<when expression='#[payload.region=="North Carolina"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="c1901f94-5f31-471f-8eed-c8fa99b5cbbf" message="my state"/>
+				<flow-ref doc:name="api_consumeSub_Flow" doc:id="04ea4693-97b7-458d-abf3-b0b3f350c817" name="api_consumeSub_Flow" target="ipInfo"/>
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10; vars.ipInfo ++ payload]" doc:name="Set Payload" doc:id="baf3e43a-0d88-449f-899e-e6d05b0a52fd" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="cf02f11c-458e-4571-a88c-2e658bb840c5" message="other state"/>
+			</otherwise>
+		</choice>
+	</flow>
+	<sub-flow name="api_consumeSub_Flow" doc:id="c15ee8e5-ddbb-4198-aa77-78f95842c24a" >
+		<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"Name":"Teshome"&#10;}]' doc:name="Set Payload" doc:id="59891730-7009-4e48-bb88-ed44e53899b8" />
+		<ee:transform doc:name="Transform Message" doc:id="7a2a2894-5b4e-498b-96fc-4b73df54305d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>
