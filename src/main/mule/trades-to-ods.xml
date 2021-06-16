@@ -20,6 +20,7 @@ values
 )
 ]]></db:sql>
 		</db:insert>
+		<logger level="INFO" doc:name="Logger" doc:id="4ba8f7e4-feb5-4c0c-93a7-76654c48f2fe" message="try logger"/>
 		<logger level="INFO" doc:name="Logger" doc:id="da0b15c0-73c0-413f-becc-02b8be4a589e" message="record inserted into DB "/>
 	</sub-flow>
 </mule>
